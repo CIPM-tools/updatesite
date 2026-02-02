@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature id="tools.cipm.metamodels.feature">
+      <category name="tools.cipm.metamodels"/>
+   </feature>
+   <category-def name="tools.cipm.metamodels" label="Metamodels for CIPM"/>
+</site>
