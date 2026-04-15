@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>tools.vitruv</groupId>
+  <artifactId>aopalliance</artifactId>
+  <versioning>
+    <release>1.0.0.autowrapped</release>
+    <versions>
+      <version>1.0.0.autowrapped</version>
+    </versions>
+    <lastUpdated>20260415145417</lastUpdated>
+  </versioning>
+</metadata>
