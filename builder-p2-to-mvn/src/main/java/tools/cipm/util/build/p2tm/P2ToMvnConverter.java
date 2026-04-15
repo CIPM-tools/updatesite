@@ -16,10 +16,14 @@ import org.slf4j.LoggerFactory;
 public class P2ToMvnConverter {
     private static final Logger logger = LoggerFactory.getLogger(P2ToMvnConverter.class);
     private static final String JAR_FILE_EXTENSION = ".jar";
+    private static final String URI_FILE_PREFIX = "file://";
+    private static final String URI_HTTP_SCHEME = "http";
+    private static final String URI_HTTPS_SCHEME = "https";
 
     public static void main(String[] args) {
         // installJarsFromLocalDirectory();
         // installJarsFromRemoteRepository();
+        // installJarsFromRepository("", URI_FILE_PREFIX + "", true);
     }
 
     private static void installJarsFromLocalDirectory() {
@@ -75,14 +79,28 @@ public class P2ToMvnConverter {
             return;
         }
 
+        installJarsFromRepository(id, repoUri, false);
+    }
+
+    private static void installJarsFromRepository(String id, String repoUri, boolean isLocal) {
         P2Repository p2Repo = P2Repository.getInstance(URI.create(repoUri), logger);
         var allBundles = p2Repo.getBundles();
 
         HttpClient client = HttpClient.newHttpClient();
         for (var bundle : allBundles) {
             System.out.println("Downloading " + bundle.getId());
-            
+
             try {
+                if (isLocal) {
+                    var bundleUri = bundle.getUri("");
+                    if (!URI_HTTP_SCHEME.equals(bundleUri.getScheme())
+                            && !URI_HTTPS_SCHEME.equals(bundleUri.getScheme())
+                            && Files.exists(Paths.get(bundleUri))) {
+                        installJarLocally(bundleUri.getSchemeSpecificPart(), id, bundle.getId(), bundle.getVersion());
+                    }
+                    continue;
+                }
+
                 var tempStorageFile = Paths.get("target", bundle.getId() + "_" + bundle.getVersion() + ".jar");
 
                 if (Files.notExists(tempStorageFile)) {
