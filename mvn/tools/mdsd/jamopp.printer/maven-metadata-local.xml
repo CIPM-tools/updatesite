@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata>
   <groupId>tools.mdsd</groupId>
-  <artifactId>org.emftext.language.java</artifactId>
+  <artifactId>jamopp.printer</artifactId>
   <versioning>
     <release>5.1.0-cipm</release>
     <versions>
       <version>5.1.0-cipm</version>
     </versions>
-    <lastUpdated>20260415075646</lastUpdated>
+    <lastUpdated>20260415075639</lastUpdated>
   </versioning>
 </metadata>
