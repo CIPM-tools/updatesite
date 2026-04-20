@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>CIPM's Maven Repository</title>
+        <style>
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+                display: flex;
+                flex-direction: column;
+                font-size: 16px;
+            }
+            @media (max-width: 839px) {
+                body {
+                    font-size: 32px;
+                }
+            }
+            @media (min-width: 840px) {
+                .page-title, #status, #mvn-items-container {
+                    align-self: center;
+                }
+            }
+            .mvn-item-key {
+                font-weight: bold;
+            }
+            #copy-message {
+                position: sticky;
+                bottom: 0;
+                align-self: center;
+                background-color: lightgray;
+                padding: 1em;
+                visibility: hidden;
+            }
+        </style>
+    </head>
+    <body>
+        <h1 class="page-title">CIPM's Maven Repository</h1>
+
+        <p id="status"></p>
+        <table id="mvn-items-container">
+            <tbody id="mvn-items">
+            </tbody>
+        </table>
+        <div id="copy-message">
+        </div>
+
+        <script>
+            function createParagraph(keyName, value) {
+                const resultParagraph = document.createElement('p');
+                const keyElement = document.createElement('span');
+                keyElement.classList.add('mvn-item-key');
+                keyElement.textContent = keyName;
+                const valueElement = document.createElement('span');
+                valueElement.textContent = value;
+                resultParagraph.append(keyElement, valueElement);
+                return resultParagraph;
+            }
+
+            function createCopyButton(item) {
+                const button = document.createElement('button');
+                button.textContent = 'Copy pom.xml Declaration to Clipboard';
+                button.onclick = (event) => {
+                    window.navigator.clipboard.writeText('<depedency>\n'
+                        + `\t<groupId>${item.groupId}</groupId>\n`
+                        + `\t<artifactId>${item.artifactId}</artifactId>\n`
+                        + `\t<version>${item.version}</version>\n`
+                        + '</dependency>\n')
+                        .then(() => {
+                            const messageElement = document.getElementById('copy-message');
+                            messageElement.textContent = `Successfully copied ${item.groupId}:${item.artifactId}:${item.version}!`;
+                            messageElement.style.visibility = 'visible';
+                            window.setTimeout(() => {
+                                messageElement.style.visibility = 'hidden';
+                            }, 2500);
+                        });
+                };
+                
+                return button;
+            }
+
+            function createTableRow(item) {
+                const tableRow = document.createElement('tr');
+                const tableCell = document.createElement('td');
+                tableRow.appendChild(tableCell);
+                tableCell.appendChild(createParagraph('Group ID:', item.groupId));
+                tableCell.appendChild(createParagraph('Artifact ID:', item.artifactId));
+                tableCell.appendChild(createParagraph('Version: ', item.version));
+                tableCell.appendChild(createCopyButton(item));
+                return tableRow;
+            }
+
+            async function initialize() {
+                let reponse = undefined;
+                try {
+                    response = await fetch('./items.json');
+                } catch (error) {
+                }
+
+                const statusElement = document.getElementById('status');
+                const tableBody = document.getElementById('mvn-items');
+                if (typeof response === 'undefined' || !response.ok) {
+                    statusElement.textContent = 'Could not retrieve the items of the Maven repository.';
+                    return;
+                }
+                
+                statusElement.textContent = '';
+
+                const items = await response.json();
+
+                for (const item of items) {
+                    tableBody.appendChild(createTableRow(item));
+                }
+            }
+
+            initialize();
+        </script>
+    </body>
+</html>
