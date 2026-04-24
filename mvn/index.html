@@ -59,7 +59,7 @@
                 const button = document.createElement('button');
                 button.textContent = 'Copy pom.xml Declaration to Clipboard';
                 button.onclick = (event) => {
-                    window.navigator.clipboard.writeText('<depedency>\n'
+                    window.navigator.clipboard.writeText('<dependency>\n'
                         + `\t<groupId>${item.groupId}</groupId>\n`
                         + `\t<artifactId>${item.artifactId}</artifactId>\n`
                         + `\t<version>${item.version}</version>\n`
