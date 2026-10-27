@@ -1,9 +1,9 @@
-package tools.cipm.util.build.p2tm.updatesiteparse;
+package tools.cipm.util.build.p2tm.p2.data;
 
 import java.util.Map;
 import java.util.Objects;
 
-import tools.cipm.util.build.p2tm.OsgiHeaders;
+import org.osgi.framework.Constants;
 
 /**
  * A single package export or import entry, parsed from the Export-Package or
@@ -22,10 +22,11 @@ import tools.cipm.util.build.p2tm.OsgiHeaders;
  * {@code x-internal:=}, {@code mandatory}, etc.).
  * </p>
  */
-public class UpdateSitePackage extends InMemoryManifestElementRepresentation {
-
-	/** The package name. */
-	public final String packageName;
+public class BundlePackage extends InMemoryManifestElementRepresentation {
+	/**
+	 * The package name.
+	 */
+	private final String packageName;
 
 	/**
 	 * Creates a package requirement with the given attributes and directives.
@@ -34,7 +35,7 @@ public class UpdateSitePackage extends InMemoryManifestElementRepresentation {
 	 * @param attributes  all attribute name/value pairs (may be {@code null})
 	 * @param directives  all directive name/value pairs (may be {@code null})
 	 */
-	public UpdateSitePackage(String packageName, Map<String, String> attributes, Map<String, String> directives) {
+	public BundlePackage(String packageName, Map<String, String> attributes, Map<String, String> directives) {
 		super(attributes, directives);
 		this.packageName = Objects.requireNonNull(packageName, "packageName");
 	}
@@ -44,28 +45,17 @@ public class UpdateSitePackage extends InMemoryManifestElementRepresentation {
 	 * absent.
 	 */
 	public VersionRange getVersionRange() {
-		return VersionRange.parse(attributes.get(OsgiHeaders.VERSION));
+		return VersionRange.parse(attributes.get(Constants.BUNDLE_VERSION_ATTRIBUTE));
 	}
 
 	/**
 	 * @return Whether this representation declares the {@code optional} directive.
 	 */
 	public boolean isOptional() {
-		return OsgiHeaders.OPTIONAL.equals(directives.get(OsgiHeaders.RESOLUTION));
+		return Constants.RESOLUTION_OPTIONAL.equals(directives.get(Constants.RESOLUTION_DIRECTIVE));
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof UpdateSitePackage other))
-			return false;
-		return packageName.equals(other.packageName) && super.equals(other);
-	}
-
-	@Override
-	public String toString() {
-		return this.getClass().getSimpleName() + "{" + "packageName='" + packageName + '\'' + ", "
-				+ getAttributesString() + ", " + getDirectivesString() + '}';
+	public String getPackageName() {
+		return packageName;
 	}
 }

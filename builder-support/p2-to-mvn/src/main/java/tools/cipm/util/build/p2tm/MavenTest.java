@@ -15,9 +15,9 @@ import org.slf4j.LoggerFactory;
 
 import tools.cipm.util.build.p2tm.mvnosgimap.Coordinate;
 import tools.cipm.util.build.p2tm.mvnosgimap.MvnRepositoryIndex;
-import tools.cipm.util.build.p2tm.updatesiteparse.UpdateSite;
+import tools.cipm.util.build.p2tm.p2.data.UpdateSite;
+import tools.cipm.util.build.p2tm.p2.data.UpdateSiteBundle;
 import tools.cipm.util.build.p2tm.updatesiteparse.UpdateSiteBuilder;
-import tools.cipm.util.build.p2tm.updatesiteparse.UpdateSiteBundle;
 
 /**
  * A test class that demonstrates how {@link UpdateSite} and

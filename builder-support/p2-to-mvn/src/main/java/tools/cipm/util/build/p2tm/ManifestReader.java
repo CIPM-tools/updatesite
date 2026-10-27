@@ -14,8 +14,8 @@ import java.util.jar.JarFile;
 import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.BundleException;
 
-import tools.cipm.util.build.p2tm.updatesiteparse.BundleDependency;
-import tools.cipm.util.build.p2tm.updatesiteparse.UpdateSitePackage;
+import tools.cipm.util.build.p2tm.p2.data.BundleDependency;
+import tools.cipm.util.build.p2tm.p2.data.BundlePackage;
 
 /**
  * Reads and parses OSGi bundle manifest headers using {@link ManifestElement},
@@ -122,17 +122,17 @@ public final class ManifestReader {
 	}
 
 	/**
-	 * Parses the {@code Import-Package} header into {@link UpdateSitePackage}s.
+	 * Parses the {@code Import-Package} header into {@link BundlePackage}s.
 	 *
 	 * @param manifest the parsed manifest headers
 	 * @return the list of imported-package requirements (never null)
 	 */
-	public static List<UpdateSitePackage> readImportedPackages(Map<String, String> manifest) {
+	public static List<BundlePackage> readImportedPackages(Map<String, String> manifest) {
 		String value = manifest.get(OsgiHeaders.IMPORT_PACKAGE);
 		if (value == null || value.isBlank()) {
 			return List.of();
 		}
-		List<UpdateSitePackage> result = new ArrayList<>();
+		List<BundlePackage> result = new ArrayList<>();
 		for (ManifestElement el : parseHeader(OsgiHeaders.IMPORT_PACKAGE, value)) {
 			var pac = parsePackage(el);
 			pac.setEntireManifest(manifest);
@@ -142,7 +142,7 @@ public final class ManifestReader {
 	}
 
 	/**
-	 * Parses the {@code Export-Package} header into {@link UpdateSitePackage}s.
+	 * Parses the {@code Export-Package} header into {@link BundlePackage}s.
 	 *
 	 * <p>
 	 * Exports are not "optional" in the same sense as imports, so {@code optional}
@@ -152,12 +152,12 @@ public final class ManifestReader {
 	 * @param manifest the parsed manifest headers
 	 * @return the list of exported-package requirements (never null)
 	 */
-	public static List<UpdateSitePackage> readExportedPackages(Map<String, String> manifest) {
+	public static List<BundlePackage> readExportedPackages(Map<String, String> manifest) {
 		String value = manifest.get(OsgiHeaders.EXPORT_PACKAGE);
 		if (value == null || value.isBlank()) {
 			return List.of();
 		}
-		List<UpdateSitePackage> result = new ArrayList<>();
+		List<BundlePackage> result = new ArrayList<>();
 		for (ManifestElement el : parseHeader(OsgiHeaders.EXPORT_PACKAGE, value)) {
 			var pac = parsePackage(el);
 			pac.setEntireManifest(manifest);
@@ -166,11 +166,11 @@ public final class ManifestReader {
 		return result;
 	}
 
-	private static UpdateSitePackage parsePackage(ManifestElement el) {
+	private static BundlePackage parsePackage(ManifestElement el) {
 		var packageName = el.getValue();
 		var attributes = collectAttributes(el);
 		var directives = collectDirectives(el);
-		return new UpdateSitePackage(packageName, attributes, directives);
+		return new BundlePackage(packageName, attributes, directives);
 	}
 
 	private static BundleDependency parseBundleDependency(ManifestElement el) {
@@ -188,9 +188,9 @@ public final class ManifestReader {
 	 * @return the list of exported package name strings (never null)
 	 */
 	public static List<String> readExportedPackageNames(Map<String, String> manifest) {
-		List<UpdateSitePackage> reqs = readExportedPackages(manifest);
+		List<BundlePackage> reqs = readExportedPackages(manifest);
 		List<String> names = new ArrayList<>(reqs.size());
-		for (UpdateSitePackage req : reqs) {
+		for (BundlePackage req : reqs) {
 			names.add(req.packageName);
 		}
 		return names;

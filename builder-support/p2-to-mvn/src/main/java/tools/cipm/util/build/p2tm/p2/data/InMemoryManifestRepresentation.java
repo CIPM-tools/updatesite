@@ -1,4 +1,4 @@
-package tools.cipm.util.build.p2tm.updatesiteparse;
+package tools.cipm.util.build.p2tm.p2.data;
 
 import java.util.Map;
 

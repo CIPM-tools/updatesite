@@ -1,6 +1,4 @@
-package tools.cipm.util.build.p2tm.updatesiteparse;
-
-import java.util.Objects;
+package tools.cipm.util.build.p2tm.p2.data;
 
 /**
  * An immutable, parsed representation of a version range.
@@ -42,15 +40,6 @@ public final class VersionRange {
 	}
 
 	/**
-	 * The unconstrained "any version" range: {@code [0,∞)}.
-	 *
-	 * @return a range matching any version
-	 */
-	public static VersionRange any() {
-		return ANY;
-	}
-
-	/**
 	 * A single exact version (no bounds), e.g. {@code "1.2.3"}.
 	 *
 	 * @param version the exact version string
@@ -66,7 +55,7 @@ public final class VersionRange {
 	 *
 	 * @param value the raw header value, may be null if no version range or exact
 	 *              version is specified
-	 * @return the parsed range, always non-null, defaults to {@link #any()} if the
+	 * @return the parsed range, always non-null, defaults to {@link ANY} if the
 	 *         given value is empty or blank or null
 	 * @throws IllegalArgumentException if {@code value} is non-blank but malformed
 	 *                                  (e.g. an unterminated or comma-less
@@ -75,7 +64,7 @@ public final class VersionRange {
 	public static VersionRange parse(String value) {
 		// Null / empty / blank -> "any" version.
 		if (value == null || value.isBlank()) {
-			return any();
+			return ANY;
 		}
 
 		String s = value.trim();
@@ -99,8 +88,8 @@ public final class VersionRange {
 		boolean includeLower = (open == '[');
 		boolean includeUpper = (close == ']');
 
-		String lower = normalizeBound(s.substring(1, comma).trim());
-		String upper = normalizeBound(s.substring(comma + 1, s.length() - 1).trim());
+		String lower = normalizeBound(s.substring(1, comma));
+		String upper = normalizeBound(s.substring(comma + 1, s.length() - 1));
 
 		return new VersionRange(lower, includeLower, upper, includeUpper, true);
 	}
@@ -112,13 +101,14 @@ public final class VersionRange {
 	 * @return Returns null for empty/∞ bounds (unbounded).
 	 */
 	private static String normalizeBound(String raw) {
-		if (raw == null)
-			return null;
-		String t = raw.trim();
-		if (t.isEmpty() || t.equals("\u221E") || t.equals("INF")) {
+		if (raw == null) {
 			return null;
 		}
-		return t;
+		String trimmed = raw.trim();
+		if (trimmed.isEmpty() || trimmed.equals("\u221E") || trimmed.equals("INF")) {
+			return null;
+		}
+		return trimmed;
 	}
 
 	/**
@@ -161,7 +151,7 @@ public final class VersionRange {
 	 * Checks whether the given version string lies within this range.
 	 *
 	 * <p>
-	 * The comparison is performed as a string-based lexical comparison against this
+	 * For now, the comparison is performed as a string-based lexical comparison against this
 	 * range's bounds:
 	 * </p>
 	 * <ul>
@@ -171,12 +161,6 @@ public final class VersionRange {
 	 * <li>Otherwise, the version must fall strictly between a lower and an upper
 	 * bound (inclusive or exclusive per the bound markers).</li>
 	 * </ul>
-	 *
-	 * <p>
-	 * FIXME Check whether version compatibility can actually be computed like this.
-	 * Since different versions follow different conventions, a lexical comparison
-	 * may not always suffice. This method was provided as a best-effort version
-	 * compatibility check.
 	 *
 	 * @param versionString the version to check; may be {@code null}
 	 * @return {@code true} if the version is within this range, {@code false}
@@ -218,29 +202,5 @@ public final class VersionRange {
 	 */
 	public static boolean isAny(VersionRange range) {
 		return range == ANY;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof VersionRange other))
-			return false;
-		return includeLower == other.includeLower && includeUpper == other.includeUpper && bounded == other.bounded
-				&& Objects.equals(lowerVersion, other.lowerVersion) && Objects.equals(upperVersion, other.upperVersion);
-	}
-
-	@Override
-	public String toString() {
-		if (!bounded) {
-			return lowerVersion;
-		}
-		StringBuilder sb = new StringBuilder();
-		sb.append(includeLower ? '[' : '(');
-		sb.append(lowerVersion == null ? "" : lowerVersion);
-		sb.append(',');
-		sb.append(upperVersion == null ? "" : upperVersion);
-		sb.append(includeUpper ? ']' : ')');
-		return sb.toString();
 	}
 }

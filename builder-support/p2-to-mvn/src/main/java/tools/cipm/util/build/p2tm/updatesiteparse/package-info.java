@@ -3,7 +3,7 @@
  * {@link UpdateSiteBuilder}. {@link UpdateSite} instances represent entire
  * Eclipse update sites. {@link UpdateSiteBundle} instances represent individual
  * OSGI bundles. {@link BundleDependency} instances represent dependencies
- * between OSGI bundles (Require-Bundle). {@link UpdateSitePackage} instances
+ * between OSGI bundles (Require-Bundle). {@link BundlePackage} instances
  * represent the package imports / exports (Import-Package / Export-Package).
  * <p>
  * For completeness, the contents of the manifest files of the bundles as well

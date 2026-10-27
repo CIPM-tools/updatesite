@@ -23,6 +23,10 @@ import org.slf4j.LoggerFactory;
 import tools.cipm.util.build.p2tm.BundleSymbolicNameData;
 import tools.cipm.util.build.p2tm.FileConstants;
 import tools.cipm.util.build.p2tm.ManifestReader;
+import tools.cipm.util.build.p2tm.p2.data.BundleDependency;
+import tools.cipm.util.build.p2tm.p2.data.BundlePackage;
+import tools.cipm.util.build.p2tm.p2.data.UpdateSite;
+import tools.cipm.util.build.p2tm.p2.data.UpdateSiteBundle;
 
 /**
  * Builds a complete {@link UpdateSite} by combining p2-layout-resolver
@@ -51,13 +55,13 @@ public final class UpdateSiteBuilder {
 		P2Repository repo = P2Repository.getInstance(URI.create(repositoryUri), logger);
 
 		Map<String, UpdateSiteBundle> bundlesByName = new LinkedHashMap<>();
-		Map<UpdateSitePackage, List<UpdateSiteBundle>> packagesToBundles = new LinkedHashMap<>();
+		Map<BundlePackage, List<UpdateSiteBundle>> packagesToBundles = new LinkedHashMap<>();
 
 		for (P2Bundle p2 : repo.getBundles()) {
 			UpdateSiteBundle UpdateSiteBundle = parseRemoteBundle(p2);
 			bundlesByName.put(UpdateSiteBundle.symbolicName.symbolicName, UpdateSiteBundle);
 
-			for (UpdateSitePackage pkg : UpdateSiteBundle.exportedPackages) {
+			for (BundlePackage pkg : UpdateSiteBundle.exportedPackages) {
 				packagesToBundles.computeIfAbsent(pkg, k -> new ArrayList<>()).add(UpdateSiteBundle);
 			}
 		}
@@ -77,12 +81,12 @@ public final class UpdateSiteBuilder {
 		P2Repository repo = P2Repository.getInstance(repositoryUri, logger);
 
 		Map<String, UpdateSiteBundle> bundlesByName = new LinkedHashMap<>();
-		Map<UpdateSitePackage, List<UpdateSiteBundle>> packagesToBundles = new LinkedHashMap<>();
+		Map<BundlePackage, List<UpdateSiteBundle>> packagesToBundles = new LinkedHashMap<>();
 
 		for (P2Bundle p2 : repo.getBundles()) {
 			UpdateSiteBundle bundle = parseLocalBundle(p2, localCloneRoot);
 			bundlesByName.put(bundle.symbolicName.symbolicName, bundle);
-			for (UpdateSitePackage pkg : bundle.exportedPackages) {
+			for (BundlePackage pkg : bundle.exportedPackages) {
 				packagesToBundles.computeIfAbsent(pkg, k -> new ArrayList<>()).add(bundle);
 			}
 		}
@@ -107,13 +111,13 @@ public final class UpdateSiteBuilder {
 			Map<String, String> headers = ManifestReader.readManifest(is);
 
 			List<BundleDependency> required = ManifestReader.readRequiredBundles(headers);
-			List<UpdateSitePackage> imported = ManifestReader.readImportedPackages(headers);
-			List<UpdateSitePackage> exported = ManifestReader.readExportedPackages(headers);
+			List<BundlePackage> imported = ManifestReader.readImportedPackages(headers);
+			List<BundlePackage> exported = ManifestReader.readExportedPackages(headers);
 
 			var symbolicNameData = ManifestReader.readBundleSymbolicName(headers)
 					.orElse(new BundleSymbolicNameData(p2.getId()));
 
-			var bundle = new UpdateSiteBundle(symbolicNameData, p2.getUri("").toString(), required, imported, exported);
+			var bundle = new UpdateSiteBundle(symbolicNameData.symbolicName, p2.getUri("").toString(), required, imported, exported);
 			bundle.setEntireManifest(headers);
 			return bundle;
 		} catch (IOException e) {

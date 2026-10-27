@@ -1,9 +1,9 @@
-package tools.cipm.util.build.p2tm.updatesiteparse;
+package tools.cipm.util.build.p2tm.p2.data;
 
 import java.util.Map;
 import java.util.Objects;
 
-import tools.cipm.util.build.p2tm.OsgiHeaders;
+import org.osgi.framework.Constants;
 
 /**
  * A bundle-level dependency, from a Require-Bundle header.
@@ -16,9 +16,8 @@ import tools.cipm.util.build.p2tm.OsgiHeaders;
  * </p>
  */
 public class BundleDependency extends InMemoryManifestElementRepresentation {
-
 	/** The name of the required bundle. */
-	public final String bundleName;
+	private final String bundleName;
 
 	/**
 	 * Creates a dependency with the given attributes and directives.
@@ -39,28 +38,17 @@ public class BundleDependency extends InMemoryManifestElementRepresentation {
 	 * absent.
 	 */
 	public VersionRange getVersionRange() {
-		return VersionRange.parse(attributes.get(OsgiHeaders.VERSION));
+		return VersionRange.parse(attributes.get(Constants.BUNDLE_VERSION_ATTRIBUTE));
 	}
 
 	/**
 	 * @return Whether this representation declares the {@code optional} directive.
 	 */
 	public boolean isOptional() {
-		return OsgiHeaders.OPTIONAL.equals(directives.get(OsgiHeaders.RESOLUTION));
-	}
-	
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof BundleDependency other))
-			return false;
-		return bundleName.equals(other.bundleName) && super.equals(other);
+		return Constants.RESOLUTION_OPTIONAL.equals(directives.get(Constants.RESOLUTION_DIRECTIVE));
 	}
 
-	@Override
-	public String toString() {
-		return this.getClass().getSimpleName() + "{" + "bundleName='" + bundleName + '\'' + ", " + getAttributesString()
-				+ ", " + getDirectivesString() + '}';
+	public String getBundleName() {
+		return bundleName;
 	}
 }
