@@ -1,4 +1,4 @@
-package tools.cipm.util.build.p2tm;
+package tools.cipm.util.build.p2tm.p2;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,7 +13,9 @@ import java.util.jar.JarFile;
 
 import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
 
+import tools.cipm.util.build.p2tm.FileConstants;
 import tools.cipm.util.build.p2tm.p2.data.BundleDependency;
 import tools.cipm.util.build.p2tm.p2.data.BundlePackage;
 
@@ -21,15 +23,8 @@ import tools.cipm.util.build.p2tm.p2.data.BundlePackage;
  * Reads and parses OSGi bundle manifest headers using {@link ManifestElement},
  * which correctly handles quoted commas (e.g. {@code uses:="a,b"}), version
  * ranges, directives and attributes.
- *
- * <p>
- * This is the single source of manifest-parsing logic shared by
- * {@code UpdateSiteBuilder} and {@code MvnRepositoryIndex}, so they stay
- * consistent and avoid hand-rolled (bug-prone) parsing.
- * </p>
  */
 public final class ManifestReader {
-
 	private ManifestReader() {
 	}
 
@@ -60,7 +55,7 @@ public final class ManifestReader {
 	 * @return a map of header name -> value
 	 * @throws IllegalStateException if the manifest cannot be parsed
 	 */
-	public static Map<String, String> readManifest(InputStream is) {
+	private static Map<String, String> readManifest(InputStream is) {
 		Map<String, String> headers = new LinkedHashMap<>();
 		try {
 			ManifestElement.parseBundleManifest(is, headers);
@@ -71,34 +66,27 @@ public final class ManifestReader {
 	}
 
 	/**
-	 * Reads and parses the {@code Bundle-SymbolicName} header, returning its value
-	 * together with all associated attributes and directives.
-	 *
-	 * <p>
-	 * For a header such as {@code org.foo;singleton:=true}, the returned
-	 * {@link BundleSymbolicNameData#symbolicName()} is {@code org.foo} and
-	 * {@code directives} contains {@code singleton -> true}.
-	 * </p>
+	 * Reads and parses the {@code Bundle-SymbolicName} header, returning its value.
 	 *
 	 * @param manifest the parsed manifest headers
 	 * @return the parsed symbolic-name data, or empty if the header is absent or
 	 *         blank
 	 */
-	public static Optional<BundleSymbolicNameData> readBundleSymbolicName(Map<String, String> manifest) {
-		String value = manifest.get(OsgiHeaders.BUNDLE_SYMBOLIC_NAME);
+	public static Optional<String> readBundleSymbolicName(Map<String, String> manifest) {
+		String value = manifest.get(Constants.BUNDLE_SYMBOLICNAME);
 		if (value == null || value.isBlank()) {
 			return Optional.empty();
 		}
-		ManifestElement[] elements = parseHeader(OsgiHeaders.BUNDLE_SYMBOLIC_NAME, value);
+
+		ManifestElement[] elements = parseHeader(Constants.BUNDLE_SYMBOLICNAME, value);
 		if (elements == null || elements.length == 0) {
 			return Optional.empty();
 		}
+		
 		// There should always only be up to one element, hence no iteration over all
 		// elements.
 		ManifestElement el = elements[0];
-		var bsnd = new BundleSymbolicNameData(el.getValue(), collectAttributes(el), collectDirectives(el));
-		bsnd.setEntireManifest(manifest);
-		return Optional.of(bsnd);
+		return Optional.of(el.getValue());
 	}
 
 	/**
@@ -108,14 +96,14 @@ public final class ManifestReader {
 	 * @return the list of required-bundle dependencies (never null)
 	 */
 	public static List<BundleDependency> readRequiredBundles(Map<String, String> manifest) {
-		String value = manifest.get(OsgiHeaders.REQUIRE_BUNDLE);
+		String value = manifest.get(Constants.REQUIRE_BUNDLE);
 		if (value == null || value.isBlank()) {
 			return List.of();
 		}
+
 		List<BundleDependency> result = new ArrayList<>();
-		for (ManifestElement el : parseHeader(OsgiHeaders.REQUIRE_BUNDLE, value)) {
+		for (ManifestElement el : parseHeader(Constants.REQUIRE_BUNDLE, value)) {
 			var dep = parseBundleDependency(el);
-			dep.setEntireManifest(manifest);
 			result.add(dep);
 		}
 		return result;
@@ -128,14 +116,14 @@ public final class ManifestReader {
 	 * @return the list of imported-package requirements (never null)
 	 */
 	public static List<BundlePackage> readImportedPackages(Map<String, String> manifest) {
-		String value = manifest.get(OsgiHeaders.IMPORT_PACKAGE);
+		String value = manifest.get(Constants.IMPORT_PACKAGE);
 		if (value == null || value.isBlank()) {
 			return List.of();
 		}
+
 		List<BundlePackage> result = new ArrayList<>();
-		for (ManifestElement el : parseHeader(OsgiHeaders.IMPORT_PACKAGE, value)) {
+		for (ManifestElement el : parseHeader(Constants.IMPORT_PACKAGE, value)) {
 			var pac = parsePackage(el);
-			pac.setEntireManifest(manifest);
 			result.add(pac);
 		}
 		return result;
@@ -153,14 +141,14 @@ public final class ManifestReader {
 	 * @return the list of exported-package requirements (never null)
 	 */
 	public static List<BundlePackage> readExportedPackages(Map<String, String> manifest) {
-		String value = manifest.get(OsgiHeaders.EXPORT_PACKAGE);
+		String value = manifest.get(Constants.EXPORT_PACKAGE);
 		if (value == null || value.isBlank()) {
 			return List.of();
+
 		}
 		List<BundlePackage> result = new ArrayList<>();
-		for (ManifestElement el : parseHeader(OsgiHeaders.EXPORT_PACKAGE, value)) {
+		for (ManifestElement el : parseHeader(Constants.EXPORT_PACKAGE, value)) {
 			var pac = parsePackage(el);
-			pac.setEntireManifest(manifest);
 			result.add(pac);
 		}
 		return result;
@@ -191,7 +179,7 @@ public final class ManifestReader {
 		List<BundlePackage> reqs = readExportedPackages(manifest);
 		List<String> names = new ArrayList<>(reqs.size());
 		for (BundlePackage req : reqs) {
-			names.add(req.packageName);
+			names.add(req.getPackageName());
 		}
 		return names;
 	}

@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import tools.cipm.util.build.p2tm.mvnosgimap.Coordinate;
 import tools.cipm.util.build.p2tm.mvnosgimap.MvnRepositoryIndex;
+import tools.cipm.util.build.p2tm.p2.UpdateSiteBuilder;
 import tools.cipm.util.build.p2tm.p2.data.UpdateSite;
-import tools.cipm.util.build.p2tm.updatesiteparse.UpdateSiteBuilder;
 
 public class P2ToMvnConverter {
 	private static final Logger logger = LoggerFactory.getLogger(P2ToMvnConverter.class);
@@ -135,7 +135,7 @@ public class P2ToMvnConverter {
 
 		var subProcess = new ProcessBuilder("./mvnw", "install:install-file", "-DlocalRepositoryPath=../mvn",
 				"-Dfile=" + filePath, "-DgroupId=" + groupId, "-DartifactId=" + artifactId, "-Dversion=" + version,
-				"-Dpackaging=jar", "-DcreateChecksum=true").inheritIO().start();
+				"-Dpackaging=jar", "-DcreateChecksum=true").inheritIO().start(); //-DpomFile=
 		var subProcessResult = subProcess.waitFor();
 		System.out.println(subProcessResult);
 	}

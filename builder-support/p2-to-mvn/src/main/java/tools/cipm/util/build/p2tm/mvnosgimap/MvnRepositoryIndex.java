@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import tools.cipm.util.build.p2tm.FileConstants;
-import tools.cipm.util.build.p2tm.ManifestReader;
+import tools.cipm.util.build.p2tm.p2.ManifestReader;
 
 /**
  * Builds a flat, complete index of a local Maven repository as a single list of
@@ -137,7 +137,7 @@ public class MvnRepositoryIndex {
 		// --- bundle name (manifest, or curated override, or artifactId fallback) ---
 		var manifestHeaders = ManifestReader.readManifest(jarPath);
 		var bsnd = ManifestReader.readBundleSymbolicName(manifestHeaders);
-		String bundleName = bsnd.isPresent() ? bsnd.get().symbolicName
+		String bundleName = bsnd.isPresent() ? bsnd.get()
 				: artifactIdToBundleNameOverrides.getOrDefault(artifactId, artifactId);
 
 		List<Coordinate> result = new ArrayList<>();
