@@ -20,8 +20,8 @@ import org.openntf.maven.p2.model.P2Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import tools.cipm.util.build.p2tm.mvnosgimap.Coordinate;
-import tools.cipm.util.build.p2tm.mvnosgimap.MvnRepositoryIndex;
+import tools.cipm.util.build.p2tm.mvn.MvnEntry;
+import tools.cipm.util.build.p2tm.mvn.MvnRepositoryIndex;
 import tools.cipm.util.build.p2tm.p2.UpdateSiteBuilder;
 import tools.cipm.util.build.p2tm.p2.data.UpdateSite;
 
@@ -144,7 +144,7 @@ public class P2ToMvnConverter {
 	 * Initialises the local Maven repository's index, i.e. a list of all available
 	 * dependencies therein.
 	 * 
-	 * @see {@link Coordinate}
+	 * @see {@link MvnEntry}
 	 */
 	private static void initMvnRepo() {
 		// Execution path
@@ -157,11 +157,7 @@ public class P2ToMvnConverter {
 		var mvnDirPath = currentPath.relativize(topDirPath.resolve("mvn"));
 
 		// Build the Maven Repository Index
-		//
-		// The "org.pcm.headless.api" bundle is the only exception in the local Maven
-		// repository that only declares the manifest version, hence its mapping is
-		// manually added.
-		mvnRepo = new MvnRepositoryIndex(mvnDirPath, Map.of("api", "org.pcm.headless.api"));
+		mvnRepo = new MvnRepositoryIndex(mvnDirPath);
 
 		// Parse all Maven coordinates available under the local Maven repository
 		mvnRepo.build();
@@ -209,15 +205,15 @@ public class P2ToMvnConverter {
 		}
 
 		// Retrieve all P2 bundles from the parsed update site
-		var allBundles = updateSite.bundlesByName.values().stream().collect(Collectors.toList());
+		var allBundles = updateSite.getBundlesByName().values().stream().collect(Collectors.toList());
 
 		TransitiveDependencyResolver resolver = new TransitiveDependencyResolver(mvnRepo);
 
-		Set<Coordinate> allTransitiveDeps = new HashSet<>();
+		Set<MvnEntry> allTransitiveDeps = new HashSet<>();
 
 		// Resolve all transitive dependencies
 		for (var p2 : allBundles) {
-			List<Coordinate> transitiveDepsForBundle = p2 != null ? resolver.resolve(p2) : List.of();
+			List<MvnEntry> transitiveDepsForBundle = p2 != null ? resolver.resolve(p2) : List.of();
 			allTransitiveDeps.addAll(transitiveDepsForBundle);
 		}
 
