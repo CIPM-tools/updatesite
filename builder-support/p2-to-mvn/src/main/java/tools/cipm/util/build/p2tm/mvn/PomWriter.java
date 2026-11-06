@@ -1,11 +1,11 @@
-package tools.cipm.util.build.p2tm;
+package tools.cipm.util.build.p2tm.mvn;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 
-import tools.cipm.util.build.p2tm.mvn.MvnEntry;
+import tools.cipm.util.build.p2tm.FileConstants;
 
 /**
  * Renders and writes a Maven POM that declares given dependencies.

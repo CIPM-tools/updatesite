@@ -22,20 +22,14 @@ import org.slf4j.LoggerFactory;
 
 import tools.cipm.util.build.p2tm.mvn.MvnEntry;
 import tools.cipm.util.build.p2tm.mvn.MvnRepositoryIndex;
+import tools.cipm.util.build.p2tm.mvn.PomWriter;
 import tools.cipm.util.build.p2tm.p2.UpdateSiteBuilder;
 import tools.cipm.util.build.p2tm.p2.data.UpdateSite;
 
 public class P2ToMvnConverter {
 	private static final Logger logger = LoggerFactory.getLogger(P2ToMvnConverter.class);
 
-	private static MvnRepositoryIndex mvnRepo;
-
-	public static void main(String[] args) {
-		// initMvnRepo();
-		// installJarsFromLocalDirectory();
-		// installJarsFromRemoteRepository();
-		// installJarsFromRepository("", FileConstants.URI_FILE_PREFIX + "", true);
-	}
+	private static MvnRepositoryIndex mvnIndex;
 
 	private static void installJarsFromLocalDirectory() {
 		var consideredPath = Paths.get(FileConstants.TARGET_DIR_NAME, FileConstants.TARGET_JARS_DIR_NAME);
@@ -146,21 +140,15 @@ public class P2ToMvnConverter {
 	 * 
 	 * @see {@link MvnEntry}
 	 */
-	private static void initMvnRepo() {
-		// Execution path
-		var currentPath = new File("").toPath().toAbsolutePath();
+	private static void initMvnIndex() {
+		var mvnDirPath = Paths.get("..", "mvn");
 
-		// The top level directory of the entire GIT repository
-		var topDirPath = currentPath.getParent().getParent();
+		if (Files.notExists(mvnDirPath)) {
+			throw new IllegalStateException("mvn repository not found.");
+		}
 
-		// Relative path to local Maven repository
-		var mvnDirPath = currentPath.relativize(topDirPath.resolve("mvn"));
-
-		// Build the Maven Repository Index
-		mvnRepo = new MvnRepositoryIndex(mvnDirPath);
-
-		// Parse all Maven coordinates available under the local Maven repository
-		mvnRepo.build();
+		mvnIndex = new MvnRepositoryIndex(mvnDirPath);
+		mvnIndex.build();
 	}
 
 	/**
@@ -199,7 +187,7 @@ public class P2ToMvnConverter {
 		// Parse the concrete update site into an in-memory model.
 		UpdateSite updateSite;
 		try {
-			updateSite = new UpdateSiteBuilder().buildLocal(absConcreteUpdateSitePath.toString());
+			updateSite = UpdateSiteBuilder.build(absConcreteUpdateSitePath.toString());
 		} catch (IOException e) {
 			throw new RuntimeException("Could not parse update site", e);
 		}
@@ -207,7 +195,7 @@ public class P2ToMvnConverter {
 		// Retrieve all P2 bundles from the parsed update site
 		var allBundles = updateSite.getBundlesByName().values().stream().collect(Collectors.toList());
 
-		TransitiveDependencyResolver resolver = new TransitiveDependencyResolver(mvnRepo);
+		TransitiveDependencyResolver resolver = new TransitiveDependencyResolver(mvnIndex);
 
 		Set<MvnEntry> allTransitiveDeps = new HashSet<>();
 
@@ -217,6 +205,7 @@ public class P2ToMvnConverter {
 			allTransitiveDeps.addAll(transitiveDepsForBundle);
 		}
 
-		return PomWriter.render(pomGroupID, pomArtifactID, pomVersion, allTransitiveDeps);
+		// return PomWriter.render(pomGroupID, pomArtifactID, pomVersion, allTransitiveDeps);
+		return "";
 	}
 }
