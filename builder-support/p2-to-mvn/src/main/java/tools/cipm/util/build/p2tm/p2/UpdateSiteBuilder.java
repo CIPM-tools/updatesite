@@ -2,9 +2,11 @@ package tools.cipm.util.build.p2tm.p2;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +16,7 @@ import org.openntf.maven.p2.model.P2Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tools.cipm.util.build.p2tm.FileConstants;
 import tools.cipm.util.build.p2tm.p2.data.BundleDependency;
 import tools.cipm.util.build.p2tm.p2.data.BundlePackage;
 import tools.cipm.util.build.p2tm.p2.data.UpdateSite;
@@ -59,7 +62,34 @@ public final class UpdateSiteBuilder {
 		return new UpdateSite(repositoryUri.toString(), bundlesByName, packagesToBundles);
 	}
 
+	public static UpdateSite build(Path root) throws IOException {
+		Map<String, UpdateSiteBundle> bundlesByName = new HashMap<>();
+		Map<BundlePackage, List<UpdateSiteBundle>> packagesToBundles = new HashMap<>();
+		
+		try (var files = Files.walk(root)) {
+			files
+				.filter(Files::isRegularFile)
+				.filter(file -> file.getFileName().toString().endsWith(FileConstants.JAR_FILE_EXTENSION))
+				.forEach(file -> {
+					var bundle = parseBundle(file);
+					bundlesByName.put(bundle.getSymbolicName(), bundle);
+					for (BundlePackage pkg : bundle.getExportedPackages()) {
+						packagesToBundles.computeIfAbsent(pkg, key -> new ArrayList<>()).add(bundle);
+					}
+				});
+		}
+		return new UpdateSite(root.toString(), bundlesByName, packagesToBundles);
+	}
+
 	private static UpdateSiteBundle parseBundle(P2Bundle p2, Path jarPath) {
+		return parseBundle(jarPath, p2.getUri("").toString());
+	}
+
+	private static UpdateSiteBundle parseBundle(Path jarPath) {
+		return parseBundle(jarPath, jarPath.toUri().toString());
+	}
+
+	private static UpdateSiteBundle parseBundle(Path jarPath, String uri) {
 		Map<String, String> headers = ManifestReader.readManifest(jarPath);
 
 		List<BundleDependency> required = ManifestReader.readRequiredBundles(headers);
@@ -68,7 +98,7 @@ public final class UpdateSiteBuilder {
 
 		var symbolicName = ManifestReader.readBundleSymbolicName(headers).orElse("");
 
-		var bundle = new UpdateSiteBundle(symbolicName, p2.getUri("").toString(), required, imported, exported);
+		var bundle = new UpdateSiteBundle(symbolicName, uri, required, imported, exported);
 		bundle.setEntireManifest(headers);
 		return bundle;
 	}
