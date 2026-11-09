@@ -203,4 +203,18 @@ public final class VersionRange {
 	public static boolean isAny(VersionRange range) {
 		return range == ANY;
 	}
+
+	@Override
+	public String toString() {
+		if (!bounded) {
+			return lowerVersion;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append(includeLower ? '[' : '(');
+		sb.append(lowerVersion == null ? "" : lowerVersion);
+		sb.append(',');
+		sb.append(upperVersion == null ? "" : upperVersion);
+		sb.append(includeUpper ? ']' : ')');
+		return sb.toString();
+	}
 }

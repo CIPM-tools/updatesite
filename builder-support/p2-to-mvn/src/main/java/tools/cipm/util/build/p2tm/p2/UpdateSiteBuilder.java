@@ -97,8 +97,9 @@ public final class UpdateSiteBuilder {
 		List<BundlePackage> exported = ManifestReader.readExportedPackages(headers);
 
 		var symbolicName = ManifestReader.readBundleSymbolicName(headers).orElse("");
+		var version = ManifestReader.readVersion(headers);
 
-		var bundle = new UpdateSiteBundle(symbolicName, uri, required, imported, exported);
+		var bundle = new UpdateSiteBundle(symbolicName, uri, version, required, imported, exported);
 		bundle.setEntireManifest(headers);
 		return bundle;
 	}

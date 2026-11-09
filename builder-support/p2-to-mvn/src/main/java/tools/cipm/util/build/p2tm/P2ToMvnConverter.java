@@ -1,28 +1,24 @@
 package tools.cipm.util.build.p2tm;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.openntf.maven.p2.model.P2Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
+
 import tools.cipm.util.build.p2tm.mvn.MvnEntry;
 import tools.cipm.util.build.p2tm.mvn.MvnRepositoryIndex;
-import tools.cipm.util.build.p2tm.mvn.PomWriter;
 import tools.cipm.util.build.p2tm.p2.UpdateSiteBuilder;
 import tools.cipm.util.build.p2tm.p2.data.UpdateSite;
 
@@ -151,61 +147,38 @@ public class P2ToMvnConverter {
 		mvnIndex.build();
 	}
 
-	/**
-	 * Generates the String content of the POM file, which declares all transitive
-	 * dependencies needed for the concrete CIPM update site under
-	 * concreteUpdateSitePath. Uses the Maven repository under
-	 * relativeLocalMvnRepoDirPath to locate the JAR files associated with the
-	 * transitive dependencies.
-	 * 
-	 * <p>
-	 * FIXME The generated POM file content is currently only manually tested by
-	 * copy-pasting it into POM files of CIPM and removing the required bundles and
-	 * imported packages from the manifest files of CIPM.
-	 * 
-	 * @param relativeLocalMvnRepoDirPath Relative path to the Maven directory
-	 *                                    ("mvn" directory) of the overall update
-	 *                                    site (currently this entire repository).
-	 *                                    Must be relative to the execution
-	 *                                    directory. Currently {@code "../../mvn"}.
-	 * @param concreteUpdateSitePath      Path to the concrete CIPM update site
-	 *                                    (e.g. {@code archive/cipm-0.1.1}). Will be
-	 *                                    converted to absolute path, if not already
-	 *                                    an absolute path
-	 * @param pomGroupID                  The group ID of the generated POM file for
-	 *                                    transitive dependencies
-	 * @param pomArtifactID               The artifact ID of the generated POM file
-	 *                                    for transitive dependencies
-	 * @param pomVersion                  The version of the generated POM file for
-	 *                                    transitive dependencies
-	 * @return The content of the POM for the transitive dependencies (as String).
-	 */
-	private static String getTransitiveDependencyPOMString(Path relativeLocalMvnRepoDirPath,
-			Path concreteUpdateSitePath, String pomGroupID, String pomArtifactID, String pomVersion) {
-		var absConcreteUpdateSitePath = concreteUpdateSitePath.toAbsolutePath();
+	public static void resolveTransitiveDependencies() {
+		initMvnIndex();
 
 		// Parse the concrete update site into an in-memory model.
 		UpdateSite updateSite;
 		try {
-			updateSite = UpdateSiteBuilder.build(absConcreteUpdateSitePath.toString());
+			updateSite = UpdateSiteBuilder.build(Paths.get("..", "mvn").toAbsolutePath());
 		} catch (IOException e) {
 			throw new RuntimeException("Could not parse update site", e);
 		}
 
-		// Retrieve all P2 bundles from the parsed update site
-		var allBundles = updateSite.getBundlesByName().values().stream().collect(Collectors.toList());
+		TransitiveDependencyResolver resolver = new TransitiveDependencyResolver(mvnIndex, updateSite);
+		var result = resolver.resolve();
 
-		TransitiveDependencyResolver resolver = new TransitiveDependencyResolver(mvnIndex);
+		Set<MvnEntry> missing = new HashSet<>();
+		Set<MvnEntry> withoutGroupId = new HashSet<>();
+		result.forEach((bundle, resolutionResult) -> {
+			missing.addAll(resolutionResult.missing());
+			resolutionResult
+				.resolved()
+				.stream()
+				.filter(entry -> entry.getGroupId().isBlank())
+				.forEach(withoutGroupId::add);
+		});
 
-		Set<MvnEntry> allTransitiveDeps = new HashSet<>();
-
-		// Resolve all transitive dependencies
-		for (var p2 : allBundles) {
-			List<MvnEntry> transitiveDepsForBundle = p2 != null ? resolver.resolve(p2) : List.of();
-			allTransitiveDeps.addAll(transitiveDepsForBundle);
+		Gson gson = new Gson();
+		try (var writer = Files.newBufferedWriter(Paths.get("intermediate.json"))) {
+			writer.write(gson.toJson(new IntermediateUnresolvedEntries(withoutGroupId, missing)));
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-
-		// return PomWriter.render(pomGroupID, pomArtifactID, pomVersion, allTransitiveDeps);
-		return "";
 	}
+
+	public static record IntermediateUnresolvedEntries(Set<MvnEntry> withoutGroupId, Set<MvnEntry> missing) {}
 }

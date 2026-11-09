@@ -29,17 +29,19 @@ import java.util.List;
 public final class UpdateSiteBundle extends InMemoryManifestRepresentation {
 	private final String symbolicName;
 	private final String uri;
+	private final String version;
 	private final List<BundleDependency> requiredBundles;
 	private final List<BundlePackage> importedPackages;
 	private final List<BundlePackage> exportedPackages;
 
-	public UpdateSiteBundle(String symbolicName, String uri, List<BundleDependency> requiredBundles,
+	public UpdateSiteBundle(String symbolicName, String uri, String version, List<BundleDependency> requiredBundles,
 			List<BundlePackage> importedPackages, List<BundlePackage> exportedPackages) {
 		this.symbolicName = symbolicName;
 		this.uri = uri;
 		this.requiredBundles = List.copyOf(requiredBundles);
 		this.importedPackages = List.copyOf(importedPackages);
 		this.exportedPackages = List.copyOf(exportedPackages);
+		this.version = version;
 	}
 
 	public String getSymbolicName() {
@@ -60,5 +62,9 @@ public final class UpdateSiteBundle extends InMemoryManifestRepresentation {
 
 	public List<BundlePackage> getExportedPackages() {
 		return exportedPackages;
+	}
+
+	public String getVersion() {
+		return version;
 	}
 }

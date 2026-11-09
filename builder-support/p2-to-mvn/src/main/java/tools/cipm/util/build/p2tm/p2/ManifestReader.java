@@ -89,6 +89,11 @@ public final class ManifestReader {
 		return Optional.of(el.getValue());
 	}
 
+	public static String readVersion(Map<String, String> manifest) {
+		String value = manifest.get(Constants.BUNDLE_VERSION);
+		return value == null || value.isBlank() ? "" : value;
+	}
+
 	/**
 	 * Parses the {@code Require-Bundle} header into {@link BundleDependency}s.
 	 *

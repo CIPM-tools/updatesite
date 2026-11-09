@@ -8,5 +8,6 @@ public final class Main {
 		// installJarsFromLocalDirectory();
 		// installJarsFromRemoteRepository();
 		// installJarsFromRepository("", FileConstants.URI_FILE_PREFIX + "", true);
+        P2ToMvnConverter.resolveTransitiveDependencies();
 	}
 }
