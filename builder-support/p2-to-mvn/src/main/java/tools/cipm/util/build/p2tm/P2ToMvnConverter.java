@@ -6,28 +6,34 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.openntf.maven.p2.model.P2Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 
+import tools.cipm.util.build.p2tm.TransitiveDependencyResolver.ResolutionResult;
 import tools.cipm.util.build.p2tm.mvn.MvnEntry;
 import tools.cipm.util.build.p2tm.mvn.MvnRepositoryIndex;
+import tools.cipm.util.build.p2tm.mvn.PomWriter;
 import tools.cipm.util.build.p2tm.p2.UpdateSiteBuilder;
 import tools.cipm.util.build.p2tm.p2.data.UpdateSite;
+import tools.cipm.util.build.p2tm.p2.data.UpdateSiteBundle;
 
 public class P2ToMvnConverter {
 	private static final Logger logger = LoggerFactory.getLogger(P2ToMvnConverter.class);
-
-	private static MvnRepositoryIndex mvnIndex;
+	private MvnRepositoryIndex mvnIndex;
 
 	private static void installJarsFromLocalDirectory() {
 		var consideredPath = Paths.get(FileConstants.TARGET_DIR_NAME, FileConstants.TARGET_JARS_DIR_NAME);
@@ -117,19 +123,54 @@ public class P2ToMvnConverter {
 
 	private static void installJarLocally(String filePath, String groupId, String artifactId, String version)
 			throws IOException, InterruptedException {
+	}
+
+	private void installJarLocally(Path filePath, MvnEntry entry, Collection<MvnEntry> dependencies)
+			throws IOException, InterruptedException {
 		// Only supports Linux for now.
-
-		/*
-		 * TODO Use getTransitiveDependencyPOMString(...) in order to generate the POM
-		 * file for transitive dependencies. Then include the generated POM in the
-		 * process below.
-		 */
-
+		var pomPath = PomWriter.write(filePath.getParent(), entry, dependencies);
 		var subProcess = new ProcessBuilder("./mvnw", "install:install-file", "-DlocalRepositoryPath=../mvn",
-				"-Dfile=" + filePath, "-DgroupId=" + groupId, "-DartifactId=" + artifactId, "-Dversion=" + version,
-				"-Dpackaging=jar", "-DcreateChecksum=true").inheritIO().start(); //-DpomFile=
+				"-Dfile=" + filePath, "-DgroupId=" + entry.getGroupId(), "-DartifactId=" + entry.getArtifactId(), "-Dversion=" + entry.getVersion(),
+				"-Dpackaging=jar", "-DcreateChecksum=true", "-DpomFile=" + pomPath.toAbsolutePath().normalize().toString()).inheritIO().start();
 		var subProcessResult = subProcess.waitFor();
+
 		System.out.println(subProcessResult);
+	}
+
+	public void convertLocalJarDirectory(Path directory) throws IOException, InterruptedException {
+		initMvnIndex();
+
+		// Parse the concrete update site into an in-memory model.
+		UpdateSite updateSite;
+		try {
+			updateSite = UpdateSiteBuilder.build(directory);
+		} catch (IOException e) {
+			throw new RuntimeException("Could not parse update site", e);
+		}
+
+		var resolvedDeps = resolveTransitiveDependencies(updateSite);
+		for (var entry : resolvedDeps.entrySet()) {
+			var mvnEntry = mvnIndex.findByBundleName(entry.getKey().getSymbolicName());
+			if (mvnEntry == null && GroupIdMappings.ARTIFACT_ID_TO_GROUP_ID.containsKey(entry.getKey().getSymbolicName())) {
+				mvnEntry = new MvnEntry(
+					GroupIdMappings.ARTIFACT_ID_TO_GROUP_ID.get(entry.getKey().getSymbolicName()),
+					entry.getKey().getSymbolicName(),
+					entry.getKey().getVersion(),
+					entry.getKey().getSymbolicName(),
+					List.of()
+				);
+			} else if (mvnEntry == null) {
+				mvnEntry = new MvnEntry(
+					readGroupIdInput(entry.getKey().getSymbolicName()),
+					entry.getKey().getSymbolicName(),
+					entry.getKey().getVersion(),
+					entry.getKey().getSymbolicName(),
+					List.of()
+				);
+			}
+
+			installJarLocally(Paths.get(URI.create(entry.getKey().getUri())), mvnEntry, entry.getValue().resolved());
+		}
 	}
 
 	/**
@@ -138,7 +179,7 @@ public class P2ToMvnConverter {
 	 * 
 	 * @see {@link MvnEntry}
 	 */
-	private static void initMvnIndex() {
+	private void initMvnIndex() {
 		var mvnDirPath = Paths.get("..", "mvn");
 
 		if (Files.notExists(mvnDirPath)) {
@@ -149,17 +190,7 @@ public class P2ToMvnConverter {
 		mvnIndex.build();
 	}
 
-	public static void resolveTransitiveDependencies() {
-		initMvnIndex();
-
-		// Parse the concrete update site into an in-memory model.
-		UpdateSite updateSite;
-		try {
-			updateSite = UpdateSiteBuilder.build(Paths.get("..", "mvn").toAbsolutePath());
-		} catch (IOException e) {
-			throw new RuntimeException("Could not parse update site", e);
-		}
-
+	private Map<UpdateSiteBundle, ResolutionResult> resolveTransitiveDependencies(UpdateSite updateSite) {
 		TransitiveDependencyResolver resolver = new TransitiveDependencyResolver(mvnIndex, updateSite);
 		var result = resolver.resolve();
 
@@ -188,8 +219,23 @@ public class P2ToMvnConverter {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			throw new IllegalStateException("Could not resolve all dependencies. Check intermediate.json.");
+		}
+
+		return result;
+	}
+
+	private String readGroupIdInput(String name) {
+		try (var scanner = new Scanner(System.in)) {
+			System.out.println("You need to specify a group ID for the artifact " + name
+					+ ". Please enter it.");
+			var potentialGroupId = scanner.next();
+			if (!potentialGroupId.isBlank()) {
+				return potentialGroupId;
+			}
+			throw new IllegalArgumentException("Oops. That's not a group ID.");
 		}
 	}
 
-	public static record IntermediateUnresolvedEntries(Set<MvnEntry> withoutGroupId, Set<MvnEntry> missing) {}
+	private static record IntermediateUnresolvedEntries(Set<MvnEntry> withoutGroupId, Set<MvnEntry> missing) {}
 }

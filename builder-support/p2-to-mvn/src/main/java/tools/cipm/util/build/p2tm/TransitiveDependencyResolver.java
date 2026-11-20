@@ -310,28 +310,9 @@ public final class TransitiveDependencyResolver {
 	}
 
 	private void mapGroupIds(List<MvnEntry> withoutGroupIds) {
-		Map<String, String> artifactIdToGroupId = new HashMap<>();
-		artifactIdToGroupId.put("org.xtext.lua", "tools.cipm");
-		artifactIdToGroupId.put("tools.cipm.models.instrumentation", "tools.cipm");
-		artifactIdToGroupId.put("jamopp.parser.jdt", "tools.mdsd");
-		artifactIdToGroupId.put("org.palladiosimulator.pcm", "org.palladiosimulator.core");
-		artifactIdToGroupId.put("de.uka.ipd.sdq.identifier", "org.palladiosimulator.commons");
-		artifactIdToGroupId.put("de.uka.ipd.sdq.stoex", "org.palladiosimulator.commons");
-		artifactIdToGroupId.put("de.uka.ipd.sdq.probfunction", "org.palladiosimulator.commons");
-		artifactIdToGroupId.put("de.uka.ipd.sdq.units", "org.palladiosimulator.commons");
-		artifactIdToGroupId.put("org.eclipse.uml2.uml", "org.eclipse.uml2");
-		artifactIdToGroupId.put("org.eclipse.uml2.common", "org.eclipse.uml2");
-		artifactIdToGroupId.put("org.eclipse.uml2.types", "org.eclipse.uml2");
-		artifactIdToGroupId.put("org.eclipse.uml2.uml.resources", "org.eclipse.uml2");
-		artifactIdToGroupId.put("org.eclipse.uml2.uml.profile.standard", "org.eclipse.uml2");
-		artifactIdToGroupId.put("org.eclipse.ocl", "org.eclipse.ocl");
-		artifactIdToGroupId.put("org.eclipse.ocl.ecore", "org.eclipse.ocl");
-		artifactIdToGroupId.put("org.eclipse.ocl.common", "org.eclipse.ocl");
-		artifactIdToGroupId.put("aopalliance", "aopalliance");
-
 		withoutGroupIds.forEach(entry -> {
-			if (artifactIdToGroupId.containsKey(entry.getArtifactId())) {
-				entry.setGroupId(artifactIdToGroupId.get(entry.getArtifactId()));
+			if (GroupIdMappings.ARTIFACT_ID_TO_GROUP_ID.containsKey(entry.getArtifactId())) {
+				entry.setGroupId(GroupIdMappings.ARTIFACT_ID_TO_GROUP_ID.get(entry.getArtifactId()));
 			}
 		});
 	}
