@@ -1,9 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>tools.mdsd</groupId>
-  <artifactId>org.somox.util</artifactId>
-  <version>0.0.0-cipm</version>
-  <description>POM was created from install:install-file</description>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+    <groupId>tools.mdsd</groupId>
+    <artifactId>org.somox.util</artifactId>
+    <version>0.0.0-cipm</version>
+    <packaging>jar</packaging>
+    <dependencies>
+        <dependency>
+            <groupId>tools.mdsd</groupId>
+            <artifactId>org.somox.sourcecodedecorator</artifactId>
+            <version>0.0.0-cipm</version>
+        </dependency>
+        <dependency>
+            <groupId>tools.mdsd</groupId>
+            <artifactId>org.somox.core</artifactId>
+            <version>0.0.0-cipm</version>
+        </dependency>
+        <dependency>
+            <groupId>tools.mdsd</groupId>
+            <artifactId>org.somox.kdmhelper</artifactId>
+            <version>0.0.0-cipm</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-1.2-api</artifactId>
+            <version>2.20.0</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+        </dependency>
+    </dependencies>
 </project>
+

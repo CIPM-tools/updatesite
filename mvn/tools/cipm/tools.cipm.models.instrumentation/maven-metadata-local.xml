@@ -3,11 +3,10 @@
   <groupId>tools.cipm</groupId>
   <artifactId>tools.cipm.models.instrumentation</artifactId>
   <versioning>
-    <release>1.0.1</release>
+    <release>1.0.0</release>
     <versions>
       <version>1.0.0</version>
-      <version>1.0.1</version>
     </versions>
-    <lastUpdated>20260508165134</lastUpdated>
+    <lastUpdated>20261120174859</lastUpdated>
   </versioning>
 </metadata>

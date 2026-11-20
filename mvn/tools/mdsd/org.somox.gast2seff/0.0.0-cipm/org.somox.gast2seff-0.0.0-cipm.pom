@@ -1,9 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>tools.mdsd</groupId>
-  <artifactId>org.somox.gast2seff</artifactId>
-  <version>0.0.0-cipm</version>
-  <description>POM was created from install:install-file</description>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+    <groupId>tools.mdsd</groupId>
+    <artifactId>org.somox.gast2seff</artifactId>
+    <version>0.0.0-cipm</version>
+    <packaging>jar</packaging>
+    <dependencies>
+        <dependency>
+            <groupId>tools.mdsd</groupId>
+            <artifactId>org.somox.sourcecodedecorator</artifactId>
+            <version>0.0.0-cipm</version>
+        </dependency>
+        <dependency>
+            <groupId>tools.mdsd</groupId>
+            <artifactId>org.somox.kdmhelper</artifactId>
+            <version>0.0.0-cipm</version>
+        </dependency>
+        <dependency>
+            <groupId>tools.mdsd</groupId>
+            <artifactId>org.somox.core</artifactId>
+            <version>0.0.0-cipm</version>
+        </dependency>
+        <dependency>
+            <groupId>org.palladiosimulator.core</groupId>
+            <artifactId>org.palladiosimulator.pcm</artifactId>
+            <version>5.0.0.202102051710</version>
+        </dependency>
+        <dependency>
+            <groupId>tools.mdsd</groupId>
+            <artifactId>org.emftext.language.java</artifactId>
+            <version>5.1.0-cipm</version>
+        </dependency>
+        <dependency>
+            <groupId>tools.mdsd</groupId>
+            <artifactId>org.somox.util</artifactId>
+            <version>0.0.0-cipm</version>
+        </dependency>
+    </dependencies>
 </project>
+
