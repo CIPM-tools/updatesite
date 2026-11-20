@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>CIPM Update Site</title>
+        <style>
+            :root {
+                color-scheme: light dark;
+                --bg: #f5f7fa;
+                --card: #ffffff;
+                --text: #1f2933;
+                --muted: #5f6b7a;
+                --border: #dde3ea;
+                --accent: #1d5fbf;
+                --code-bg: #eef2f7;
+            }
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --bg: #12161c;
+                    --card: #1b2129;
+                    --text: #e4e9ef;
+                    --muted: #9aa6b4;
+                    --border: #2c3542;
+                    --accent: #6ea8ff;
+                    --code-bg: #232b36;
+                }
+            }
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+                line-height: 1.5;
+                background: var(--bg);
+                color: var(--text);
+            }
+            header {
+                background: linear-gradient(135deg, #1d5fbf, #0f3a7a);
+                color: #ffffff;
+                padding: 3em 1em 2.5em;
+                text-align: center;
+            }
+            main {
+                max-width: 60em;
+                margin: 0 auto;
+                padding: 2em 1em;
+            }
+            section {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 1.5em;
+                margin-bottom: 1.5em;
+            }
+            a {
+                color: var(--accent);
+            }
+            ul.sites {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+            ul.sites li {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 0.5em 1em;
+                padding: 0.6em 0;
+                border-top: 1px solid var(--border);
+            }
+            ul.sites li:first-child {
+                border-top: none;
+            }
+            .site-name {
+                font-weight: 600;
+                min-width: 14em;
+            }
+            code, pre {
+                font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+                background: var(--code-bg);
+                border-radius: 5px;
+            }
+            code {
+                padding: 0.15em 0.4em;
+                word-break: break-all;
+            }
+            pre {
+                padding: 1em;
+                overflow-x: auto;
+            }
+            .site-url {
+                flex: 1;
+                font-size: 0.9em;
+            }
+            button {
+                font: inherit;
+                font-size: 0.85em;
+                padding: 0.3em 0.8em;
+                border: 1px solid var(--accent);
+                border-radius: 5px;
+                background: transparent;
+                color: var(--accent);
+                cursor: pointer;
+            }
+            button:hover, button:focus-visible {
+                background: var(--accent);
+                color: var(--card);
+            }
+            .button-link {
+                display: inline-block;
+                padding: 0.6em 1.2em;
+                border-radius: 6px;
+                background: var(--accent);
+                color: var(--card);
+                text-decoration: none;
+                font-weight: 600;
+            }
+            footer {
+                text-align: center;
+                padding: 1em 1em 2em;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>CIPM Update Site</h1>
+            <p>We host Eclipse P2 update sites and a Maven repository for CIPM and its dependencies.</p>
+        </header>
+
+        <main>
+            <section>
+                <h2>Eclipse Update Sites</h2>
+                <p>
+                    In Eclipse, open <em>Help &gt; Install New Software...</em>. Click <em>Add...</em>, and enter one of the following URLs as location.
+                </p>
+
+                <h3>Releases</h3>
+                <ul class="sites">
+                    <li><span class="site-name">CIPM Aggregated Metamodels 1.0.1</span><code class="site-url" data-path="release/cipm-aggr-metamodels-1.0.1/"></code></li>
+                    <li><span class="site-name">CIPM Aggregated Metamodels 1.0.0</span><code class="site-url" data-path="release/cipm-aggr-metamodels-1.0.0/"></code></li>
+                    <li><span class="site-name">CIPM Metamodels 1.0.1</span><code class="site-url" data-path="release/cipm-metamodels-1.0.1/"></code></li>
+                    <li><span class="site-name">CIPM Metamodels 1.0.0</span><code class="site-url" data-path="release/cipm-metamodels-1.0.0/"></code></li>
+                    <li><span class="site-name">JaMoPP 5.1.1 (CIPM)</span><code class="site-url" data-path="release/jamopp-5.1.1-cipm/"></code></li>
+                    <li><span class="site-name">JaMoPP 5.1.0 (CIPM)</span><code class="site-url" data-path="release/jamopp-5.1.0-cipm/"></code></li>
+                    <li><span class="site-name">SoMoX 0.0.0 (CIPM)</span><code class="site-url" data-path="release/somox-0.0.0-cipm/"></code></li>
+                </ul>
+
+                <h3>Nightly</h3>
+                <p>Development builds. They may change or break at any time.</p>
+                <ul class="sites">
+                    <li><span class="site-name">CIPM 0.1.1-dev</span><code class="site-url" data-path="nightly/cipm-0.1.1-dev/"></code></li>
+                    <li><span class="site-name">CIPM Metamodels 1.0.0-dev</span><code class="site-url" data-path="nightly/cipm-metamodels-1.0.0-dev/"></code></li>
+                </ul>
+
+                <h3>Archive</h3>
+                <p>Older versions, kept for reproducibility.</p>
+                <ul class="sites">
+                    <li><span class="site-name">CIPM 0.1.1</span><code class="site-url" data-path="archive/cipm-0.1.1/"></code></li>
+                    <li><span class="site-name">CIPM 0.1.0</span><code class="site-url" data-path="archive/cipm-0.1.0/"></code></li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Maven Repository</h2>
+                <p>
+                    The Eclipse plugins and their dependencies are also available as Maven artifacts. Add the repository to your <code>pom.xml</code>:
+                </p>
+                <pre id="mvn-repo-snippet"></pre>
+                <p id="copy-mvn-repo"></p>
+                <p>Browse and search all artifacts, including their dependencies:</p>
+                <p><a class="button-link" href="mvn/">Open Maven Repository</a></p>
+            </section>
+        </main>
+
+        <footer>
+            Source: <a href="https://github.com/CIPM-tools/updatesite">CIPM-tools/updatesite</a>
+        </footer>
+
+        <script>
+            function toAbsoluteUrl(path) {
+                return new URL(path, 'https://cipm-tools.github.io/updatesite/').href;
+            }
+
+            function createCopyButton(url) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = 'Copy';
+                button.onclick = () => {
+                    const label = button.textContent;
+                    window.navigator.clipboard.writeText(url)
+                        .then(() => button.textContent = 'Copied!', () => button.textContent = 'Copy failed')
+                        .finally(() => window.setTimeout(() => button.textContent = label, 2000));
+                };
+                return button;
+            }
+
+            for (const urlElement of document.querySelectorAll('.site-url')) {
+                const url = toAbsoluteUrl(urlElement.dataset.path);
+                urlElement.textContent = url;
+                urlElement.after(createCopyButton(url));
+            }
+
+            const repoSnippet = '<repository>\n'
+                + '    <id>cipm</id>\n'
+                + `    <url>${toAbsoluteUrl('mvn/')}</url>\n`
+                + '</repository>';
+            document.getElementById('mvn-repo-snippet').textContent = repoSnippet;
+            document.getElementById('copy-mvn-repo').appendChild(createCopyButton(repoSnippet));
+        </script>
+    </body>
+</html>
