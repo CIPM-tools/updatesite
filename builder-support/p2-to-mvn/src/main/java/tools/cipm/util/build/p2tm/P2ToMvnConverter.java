@@ -7,7 +7,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -161,6 +163,7 @@ public class P2ToMvnConverter {
 		TransitiveDependencyResolver resolver = new TransitiveDependencyResolver(mvnIndex, updateSite);
 		var result = resolver.resolve();
 
+		Map<String, IntermediateUnresolvedEntries> bundleNameToUnresolvedEntries = new HashMap<>();
 		Set<MvnEntry> missing = new HashSet<>();
 		Set<MvnEntry> withoutGroupId = new HashSet<>();
 		result.forEach((bundle, resolutionResult) -> {
@@ -170,13 +173,21 @@ public class P2ToMvnConverter {
 				.stream()
 				.filter(entry -> entry.getGroupId().isBlank())
 				.forEach(withoutGroupId::add);
+			
+			if (!missing.isEmpty() || !withoutGroupId.isEmpty()) {
+				bundleNameToUnresolvedEntries.put(bundle.getSymbolicName(), new IntermediateUnresolvedEntries(new HashSet<>(withoutGroupId), new HashSet<>(missing)));
+			}
+			missing.clear();
+			withoutGroupId.clear();
 		});
 
-		Gson gson = new Gson();
-		try (var writer = Files.newBufferedWriter(Paths.get("intermediate.json"))) {
-			writer.write(gson.toJson(new IntermediateUnresolvedEntries(withoutGroupId, missing)));
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (!bundleNameToUnresolvedEntries.isEmpty()) {
+			Gson gson = new Gson();
+			try (var writer = Files.newBufferedWriter(Paths.get("intermediate.json"))) {
+				writer.write(gson.toJson(bundleNameToUnresolvedEntries));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

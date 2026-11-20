@@ -9,7 +9,7 @@ import java.util.Objects;
  * Represents a Maven identity with its contained packages.
  */
 public final class MvnEntry {
-	private final String groupId;
+	private String groupId;
 	private final String artifactId;
 	private final String version;
 	private final List<String> packageNames = new ArrayList<>();
@@ -40,6 +40,10 @@ public final class MvnEntry {
 	 */
 	public boolean hasPackage(String packageName) {
 		return this.packageNames.contains(packageName);
+	}
+
+	public void setGroupId(String groupId) {
+		this.groupId = groupId;
 	}
 
 	public String getGroupId() {
