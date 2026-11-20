@@ -1,6 +1,5 @@
 package tools.cipm.util.build.p2tm;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -9,33 +8,32 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.openntf.maven.p2.model.P2Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import tools.cipm.util.build.p2tm.mvnosgimap.Coordinate;
-import tools.cipm.util.build.p2tm.mvnosgimap.MvnRepositoryIndex;
-import tools.cipm.util.build.p2tm.updatesiteparse.UpdateSite;
-import tools.cipm.util.build.p2tm.updatesiteparse.UpdateSiteBuilder;
+import com.google.gson.Gson;
+
+import tools.cipm.util.build.p2tm.TransitiveDependencyResolver.ResolutionResult;
+import tools.cipm.util.build.p2tm.mvn.MvnEntry;
+import tools.cipm.util.build.p2tm.mvn.MvnRepositoryIndex;
+import tools.cipm.util.build.p2tm.mvn.PomWriter;
+import tools.cipm.util.build.p2tm.p2.UpdateSiteBuilder;
+import tools.cipm.util.build.p2tm.p2.data.UpdateSite;
+import tools.cipm.util.build.p2tm.p2.data.UpdateSiteBundle;
 
 public class P2ToMvnConverter {
 	private static final Logger logger = LoggerFactory.getLogger(P2ToMvnConverter.class);
-
-	private static MvnRepositoryIndex mvnRepo;
-
-	public static void main(String[] args) {
-		// initMvnRepo();
-		// installJarsFromLocalDirectory();
-		// installJarsFromRemoteRepository();
-		// installJarsFromRepository("", FileConstants.URI_FILE_PREFIX + "", true);
-	}
+	private MvnRepositoryIndex mvnIndex;
 
 	private static void installJarsFromLocalDirectory() {
 		var consideredPath = Paths.get(FileConstants.TARGET_DIR_NAME, FileConstants.TARGET_JARS_DIR_NAME);
@@ -125,102 +123,119 @@ public class P2ToMvnConverter {
 
 	private static void installJarLocally(String filePath, String groupId, String artifactId, String version)
 			throws IOException, InterruptedException {
+	}
+
+	private void installJarLocally(Path filePath, MvnEntry entry, Collection<MvnEntry> dependencies)
+			throws IOException, InterruptedException {
 		// Only supports Linux for now.
-
-		/*
-		 * TODO Use getTransitiveDependencyPOMString(...) in order to generate the POM
-		 * file for transitive dependencies. Then include the generated POM in the
-		 * process below.
-		 */
-
+		var pomPath = PomWriter.write(filePath.getParent(), entry, dependencies);
 		var subProcess = new ProcessBuilder("./mvnw", "install:install-file", "-DlocalRepositoryPath=../mvn",
-				"-Dfile=" + filePath, "-DgroupId=" + groupId, "-DartifactId=" + artifactId, "-Dversion=" + version,
-				"-Dpackaging=jar", "-DcreateChecksum=true").inheritIO().start();
+				"-Dfile=" + filePath, "-DgroupId=" + entry.getGroupId(), "-DartifactId=" + entry.getArtifactId(), "-Dversion=" + entry.getVersion(),
+				"-Dpackaging=jar", "-DcreateChecksum=true", "-DpomFile=" + pomPath.toAbsolutePath().normalize().toString()).inheritIO().start();
 		var subProcessResult = subProcess.waitFor();
+
 		System.out.println(subProcessResult);
+	}
+
+	public void convertLocalJarDirectory(Path directory) throws IOException, InterruptedException {
+		initMvnIndex();
+
+		// Parse the concrete update site into an in-memory model.
+		UpdateSite updateSite;
+		try {
+			updateSite = UpdateSiteBuilder.build(directory);
+		} catch (IOException e) {
+			throw new RuntimeException("Could not parse update site", e);
+		}
+
+		var resolvedDeps = resolveTransitiveDependencies(updateSite);
+		for (var entry : resolvedDeps.entrySet()) {
+			var mvnEntry = mvnIndex.findByBundleName(entry.getKey().getSymbolicName());
+			if (mvnEntry == null && GroupIdMappings.ARTIFACT_ID_TO_GROUP_ID.containsKey(entry.getKey().getSymbolicName())) {
+				mvnEntry = new MvnEntry(
+					GroupIdMappings.ARTIFACT_ID_TO_GROUP_ID.get(entry.getKey().getSymbolicName()),
+					entry.getKey().getSymbolicName(),
+					entry.getKey().getVersion(),
+					entry.getKey().getSymbolicName(),
+					List.of()
+				);
+			} else if (mvnEntry == null) {
+				mvnEntry = new MvnEntry(
+					readGroupIdInput(entry.getKey().getSymbolicName()),
+					entry.getKey().getSymbolicName(),
+					entry.getKey().getVersion(),
+					entry.getKey().getSymbolicName(),
+					List.of()
+				);
+			}
+
+			installJarLocally(Paths.get(URI.create(entry.getKey().getUri())), mvnEntry, entry.getValue().resolved());
+		}
 	}
 
 	/**
 	 * Initialises the local Maven repository's index, i.e. a list of all available
 	 * dependencies therein.
 	 * 
-	 * @see {@link Coordinate}
+	 * @see {@link MvnEntry}
 	 */
-	private static void initMvnRepo() {
-		// Execution path
-		var currentPath = new File("").toPath().toAbsolutePath();
+	private void initMvnIndex() {
+		var mvnDirPath = Paths.get("..", "mvn");
 
-		// The top level directory of the entire GIT repository
-		var topDirPath = currentPath.getParent().getParent();
-
-		// Relative path to local Maven repository
-		var mvnDirPath = currentPath.relativize(topDirPath.resolve("mvn"));
-
-		// Build the Maven Repository Index
-		//
-		// The "org.pcm.headless.api" bundle is the only exception in the local Maven
-		// repository that only declares the manifest version, hence its mapping is
-		// manually added.
-		mvnRepo = new MvnRepositoryIndex(mvnDirPath, Map.of("api", "org.pcm.headless.api"));
-
-		// Parse all Maven coordinates available under the local Maven repository
-		mvnRepo.build();
-	}
-
-	/**
-	 * Generates the String content of the POM file, which declares all transitive
-	 * dependencies needed for the concrete CIPM update site under
-	 * concreteUpdateSitePath. Uses the Maven repository under
-	 * relativeLocalMvnRepoDirPath to locate the JAR files associated with the
-	 * transitive dependencies.
-	 * 
-	 * <p>
-	 * FIXME The generated POM file content is currently only manually tested by
-	 * copy-pasting it into POM files of CIPM and removing the required bundles and
-	 * imported packages from the manifest files of CIPM.
-	 * 
-	 * @param relativeLocalMvnRepoDirPath Relative path to the Maven directory
-	 *                                    ("mvn" directory) of the overall update
-	 *                                    site (currently this entire repository).
-	 *                                    Must be relative to the execution
-	 *                                    directory. Currently {@code "../../mvn"}.
-	 * @param concreteUpdateSitePath      Path to the concrete CIPM update site
-	 *                                    (e.g. {@code archive/cipm-0.1.1}). Will be
-	 *                                    converted to absolute path, if not already
-	 *                                    an absolute path
-	 * @param pomGroupID                  The group ID of the generated POM file for
-	 *                                    transitive dependencies
-	 * @param pomArtifactID               The artifact ID of the generated POM file
-	 *                                    for transitive dependencies
-	 * @param pomVersion                  The version of the generated POM file for
-	 *                                    transitive dependencies
-	 * @return The content of the POM for the transitive dependencies (as String).
-	 */
-	private static String getTransitiveDependencyPOMString(Path relativeLocalMvnRepoDirPath,
-			Path concreteUpdateSitePath, String pomGroupID, String pomArtifactID, String pomVersion) {
-		var absConcreteUpdateSitePath = concreteUpdateSitePath.toAbsolutePath();
-
-		// Parse the concrete update site into an in-memory model.
-		UpdateSite updateSite;
-		try {
-			updateSite = new UpdateSiteBuilder().buildLocal(absConcreteUpdateSitePath.toString());
-		} catch (IOException e) {
-			throw new RuntimeException("Could not parse update site", e);
+		if (Files.notExists(mvnDirPath)) {
+			throw new IllegalStateException("mvn repository not found.");
 		}
 
-		// Retrieve all P2 bundles from the parsed update site
-		var allBundles = updateSite.bundlesByName.values().stream().collect(Collectors.toList());
+		mvnIndex = new MvnRepositoryIndex(mvnDirPath);
+		mvnIndex.build();
+	}
 
-		TransitiveDependencyResolver resolver = new TransitiveDependencyResolver(mvnRepo);
+	private Map<UpdateSiteBundle, ResolutionResult> resolveTransitiveDependencies(UpdateSite updateSite) {
+		TransitiveDependencyResolver resolver = new TransitiveDependencyResolver(mvnIndex, updateSite);
+		var result = resolver.resolve();
 
-		Set<Coordinate> allTransitiveDeps = new HashSet<>();
+		Map<String, IntermediateUnresolvedEntries> bundleNameToUnresolvedEntries = new HashMap<>();
+		Set<MvnEntry> missing = new HashSet<>();
+		Set<MvnEntry> withoutGroupId = new HashSet<>();
+		result.forEach((bundle, resolutionResult) -> {
+			missing.addAll(resolutionResult.missing());
+			resolutionResult
+				.resolved()
+				.stream()
+				.filter(entry -> entry.getGroupId().isBlank())
+				.forEach(withoutGroupId::add);
+			
+			if (!missing.isEmpty() || !withoutGroupId.isEmpty()) {
+				bundleNameToUnresolvedEntries.put(bundle.getSymbolicName(), new IntermediateUnresolvedEntries(new HashSet<>(withoutGroupId), new HashSet<>(missing)));
+			}
+			missing.clear();
+			withoutGroupId.clear();
+		});
 
-		// Resolve all transitive dependencies
-		for (var p2 : allBundles) {
-			List<Coordinate> transitiveDepsForBundle = p2 != null ? resolver.resolve(p2) : List.of();
-			allTransitiveDeps.addAll(transitiveDepsForBundle);
+		if (!bundleNameToUnresolvedEntries.isEmpty()) {
+			Gson gson = new Gson();
+			try (var writer = Files.newBufferedWriter(Paths.get("intermediate.json"))) {
+				writer.write(gson.toJson(bundleNameToUnresolvedEntries));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			throw new IllegalStateException("Could not resolve all dependencies. Check intermediate.json.");
 		}
 
-		return PomWriter.render(pomGroupID, pomArtifactID, pomVersion, allTransitiveDeps);
+		return result;
 	}
+
+	private String readGroupIdInput(String name) {
+		try (var scanner = new Scanner(System.in)) {
+			System.out.println("You need to specify a group ID for the artifact " + name
+					+ ". Please enter it.");
+			var potentialGroupId = scanner.next();
+			if (!potentialGroupId.isBlank()) {
+				return potentialGroupId;
+			}
+			throw new IllegalArgumentException("Oops. That's not a group ID.");
+		}
+	}
+
+	private static record IntermediateUnresolvedEntries(Set<MvnEntry> withoutGroupId, Set<MvnEntry> missing) {}
 }

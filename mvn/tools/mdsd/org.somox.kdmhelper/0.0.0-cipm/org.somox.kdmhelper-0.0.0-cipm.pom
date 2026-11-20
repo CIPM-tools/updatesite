@@ -1,9 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>tools.mdsd</groupId>
-  <artifactId>org.somox.kdmhelper</artifactId>
-  <version>0.0.0-cipm</version>
-  <description>POM was created from install:install-file</description>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+    <groupId>tools.mdsd</groupId>
+    <artifactId>org.somox.kdmhelper</artifactId>
+    <version>0.0.0-cipm</version>
+    <packaging>jar</packaging>
+    <dependencies>
+        <dependency>
+            <groupId>tools.mdsd</groupId>
+            <artifactId>org.emftext.language.java</artifactId>
+            <version>5.1.0-cipm</version>
+        </dependency>
+        <dependency>
+            <groupId>tools.mdsd</groupId>
+            <artifactId>jamopp.resource</artifactId>
+            <version>5.1.0-cipm</version>
+        </dependency>
+        <dependency>
+            <groupId>tools.mdsd</groupId>
+            <artifactId>jamopp.parser.jdt</artifactId>
+            <version>5.1.0.202412231903</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-1.2-api</artifactId>
+            <version>2.20.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>33.8.0-jre</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.emf</groupId>
+            <artifactId>org.eclipse.emf.common</artifactId>
+            <version>2.26.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.emf</groupId>
+            <artifactId>org.eclipse.emf.ecore</artifactId>
+            <version>2.26.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jdt</groupId>
+            <artifactId>org.eclipse.jdt.core</artifactId>
+            <version>3.32.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.emf</groupId>
+            <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
+            <version>2.17.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.emf</groupId>
+            <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
+            <version>2.17.0</version>
+        </dependency>
+    </dependencies>
 </project>
+

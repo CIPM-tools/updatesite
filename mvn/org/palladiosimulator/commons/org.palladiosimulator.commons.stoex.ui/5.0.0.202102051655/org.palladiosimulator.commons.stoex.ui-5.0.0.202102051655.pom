@@ -1,9 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.palladiosimulator.commons</groupId>
-  <artifactId>org.palladiosimulator.commons.stoex.ui</artifactId>
-  <version>5.0.0.202102051655</version>
-  <description>POM was created from install:install-file</description>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+    <groupId>org.palladiosimulator.commons</groupId>
+    <artifactId>org.palladiosimulator.commons.stoex.ui</artifactId>
+    <version>5.0.0.202102051655</version>
+    <packaging>jar</packaging>
+    <dependencies>
+        <dependency>
+            <groupId>tools.vitruv</groupId>
+            <artifactId>org.palladiosimulator.commons.stoex</artifactId>
+            <version>5.0.0.202102051655</version>
+        </dependency>
+        <dependency>
+            <groupId>org.palladiosimulator.commons</groupId>
+            <artifactId>org.palladiosimulator.commons.stoex.ide</artifactId>
+            <version>5.0.0.202102051655</version>
+        </dependency>
+        <dependency>
+            <groupId>tools.vitruv</groupId>
+            <artifactId>org.palladiosimulator.commons.stoex.api</artifactId>
+            <version>5.0.0.202102051655</version>
+        </dependency>
+        <dependency>
+            <groupId>org.palladiosimulator.commons</groupId>
+            <artifactId>de.uka.ipd.sdq.stoex.analyser</artifactId>
+            <version>5.0.0.202102051655</version>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr-runtime</artifactId>
+            <version>3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.xtext</groupId>
+            <artifactId>org.eclipse.xtext.xbase.lib</artifactId>
+            <version>2.28.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-1.2-api</artifactId>
+            <version>2.20.0</version>
+        </dependency>
+    </dependencies>
 </project>
+

@@ -59,6 +59,9 @@ tmp/
 *.bak
 *.swp
 *.class
+.settings
+.project
+.classpath
 
 # NetBeans
 # --------

@@ -16,4 +16,6 @@ public final class FileConstants {
 	public static final String URI_FILE_PREFIX = "file://";
 	public static final String URI_HTTP_SCHEME = "http";
 	public static final String URI_HTTPS_SCHEME = "https";
+
+	public static final String POM_FILE_NAME = "pom.xml";
 }
