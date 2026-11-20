@@ -15,12 +15,19 @@
                 }
             }
             @media (min-width: 840px) {
-                .page-title, #status, #mvn-items-container {
+                .page-title, #search, #status, #mvn-items-container {
                     align-self: center;
                 }
             }
             .mvn-item-key {
                 font-weight: bold;
+            }
+            #search {
+                font-size: inherit;
+                min-width: 50%;
+            }
+            #dep {
+                padding: 1em 1em 0 1em;
             }
             #copy-message {
                 position: sticky;
@@ -35,6 +42,7 @@
     <body>
         <h1 class="page-title">CIPM's Maven Repository</h1>
 
+        <input type="search" id="search" placeholder="Search by group ID, artifact ID, or version" aria-label="Search the Maven dependencies">
         <p id="status"></p>
         <table id="mvn-items-container">
             <tbody id="mvn-items">
@@ -81,11 +89,38 @@
                 const tableRow = document.createElement('tr');
                 const tableCell = document.createElement('td');
                 tableRow.appendChild(tableCell);
+                tableRow.dataset.search = `${item.groupId}:${item.artifactId}:${item.version}`.toLowerCase();
+
                 tableCell.appendChild(createParagraph('Group ID:', item.groupId));
                 tableCell.appendChild(createParagraph('Artifact ID:', item.artifactId));
                 tableCell.appendChild(createParagraph('Version: ', item.version));
                 tableCell.appendChild(createCopyButton(item));
+
+                if (item.dependencies?.length) {
+                    const details = document.createElement('details');
+                    details.id = 'dep';
+                    const summary = document.createElement('summary');
+                    summary.textContent = `Dependencies (${item.dependencies.length})`;
+
+                    const list = document.createElement('ul');
+                    for (const dep of item.dependencies) {
+                        const entry = document.createElement('li');
+                        entry.textContent = `${dep.groupId}:${dep.artifactId}:${dep.version}`;
+                        list.appendChild(entry);
+                    }
+
+                    details.append(summary, list);
+                    tableCell.appendChild(details);
+                }
+
                 return tableRow;
+            }
+
+            function filterRows(query) {
+                const terms = query.toLowerCase().split(/\s+/).filter(term => term);
+                for (const row of document.getElementById('mvn-items').rows) {
+                    row.hidden = !terms.every(term => row.dataset.search.includes(term));
+                }
             }
 
             async function initialize() {
@@ -109,6 +144,10 @@
                 for (const item of items) {
                     tableBody.appendChild(createTableRow(item));
                 }
+
+                const searchElement = document.getElementById('search');
+                searchElement.addEventListener('input', () => filterRows(searchElement.value));
+                filterRows(searchElement.value);
             }
 
             initialize();
